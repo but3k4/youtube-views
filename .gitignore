@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+dist
+build
+eggs
+.eggs
+*.egg
+*.egg-info
+.installed.cfg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.coverage
+.nox
+.tox
+.cache
+htmlcov
+.pytest_cache
+
+# PyBuilder
+target/
+
+# Virtual environment
+env/
+coverage.xml
+unittests.xml
+
+# VIM files
+*.sw[op]
+
+# Mac
+.DS_Store
