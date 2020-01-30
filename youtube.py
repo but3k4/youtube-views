@@ -14,6 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import ElementClickInterceptedException
 
 
 class YouTube:
@@ -183,9 +184,10 @@ class YouTube:
             try:
                 button = self.find_by_class('ytp-ad-skip-button-text')
                 if button:
-                    print(button.get_attribute('textContent'))
+                    if self.args.verbose:
+                        print(button.get_attribute('textContent'))
                     button.click()
-            except ElementNotInteractableException:
+            except (ElementNotInteractableException, ElementClickInterceptedException):
                 time.sleep(sleep)
             except NoSuchElementException:
                 break
@@ -220,7 +222,8 @@ class YouTube:
             # xpath = '//*[@id="count"]/yt-view-count-renderer/span[2]'
             # views = self.find_by_xpath(xpath)
             views = self.find_by_class(class_name)
-            print('views:', views.get_attribute('textContent').strip(' views'))
+            if self.args.verbose:
+                print('views:', views.get_attribute('textContent').strip(' views'))
         except NoSuchElementException:
             return None
         return True
@@ -248,27 +251,25 @@ class YouTube:
         _seconds = timedelta(hours=int(_hour), minutes=int(_min), seconds=int(_sec))
         return int(_seconds.total_seconds())
 
-    def login(self):
-        """ log into url """
+    def run(self):
+        """ perform all actions """
 
-        login_name = input('lala\n')
-        login_password = input('lele\n')
         self.get_url()
-        time.sleep(3)
-
-        login_type = self.browser.find_element_by_id('switcher_plogin')
-        login_type.click()
-
-        username = self.browser.find_element_by_id('u')
-        username.clear()
-        password = self.browser.find_element_by_id('p')
-        password.clear()
-        username.send_keys(login_name)
-        password.send_keys(login_password)
-
-        submit = self.browser.find_element_by_id('login_button')
-        submit.click()
-        time.sleep(5)
+        self.get_title()
+        self.play_video()
+        # self.mute_video()
+        self.skip_ad()
+        self.get_views()
+        video_duration = self.time_duration()
+        if video_duration:
+            print('video duration time:', video_duration)
+        seconds = self.to_seconds(duration=video_duration.split(':'))
+        sleep_time = randrange(seconds)
+        if self.args.verbose:
+            print('video duration time in seconds:', seconds)
+        print('stopping video in %s seconds' % sleep_time)
+        time.sleep(sleep_time)
+        self.disconnect()
 
 
 def get_cli_args():
@@ -296,6 +297,7 @@ def get_cli_args():
     optional.add_argument(
         '-v', '--verbose',
         action='store_true',
+        default=False,
         help='show more output',
     )
     optional.add_argument(
@@ -318,23 +320,7 @@ def _main():
 
     cli_args = get_cli_args()
     youtube = YouTube(cli_args)
-    youtube.get_url()
-    youtube.get_title()
-    youtube.play_video()
-    # youtube.mute_video()
-    youtube.skip_ad()
-    youtube.get_views()
-    video_duration = youtube.time_duration()
-    if video_duration:
-        print('video duration time:', video_duration)
-    seconds = youtube.to_seconds(duration=video_duration.split(':'))
-    print('video duration time in seconds:', seconds)
-
-    sleep_time = randrange(seconds)
-    print('stopping video in %s seconds' % sleep_time)
-    # time.sleep(sleep_time)
-    time.sleep(10)
-    youtube.disconnect()
+    youtube.run()
 
 
 if __name__ == '__main__':
