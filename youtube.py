@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-""" YouTube increase views tool """
+"""
+YouTube increase views tool
+
+for more information about selenium, please visit:
+https://selenium-python.readthedocs.io/
+"""
 
 import time
 import sys
@@ -10,8 +15,10 @@ from random import randrange
 from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import ElementClickInterceptedException
@@ -19,6 +26,7 @@ from selenium.common.exceptions import ElementClickInterceptedException
 
 class YouTube:
     """ YouTube class """
+    # pylint: disable=R0904
 
     def __init__(self, args):
         """ init variables """
@@ -120,6 +128,98 @@ class YouTube:
         }
         return ' '.join(user_agents.get(name, 'mac_safari'))
 
+    def find_by_class(self, name):
+        """ find element by class name """
+
+        # Use this when you want to locate an element by class attribute name.
+        # With this strategy, the first element with the matching class
+        # attribute name will be returned. If no element has a matching class
+        # attribute name, a NoSuchElementException will be raised.
+
+        return self.browser.find_element_by_class_name(name)
+
+    def find_all_by_class(self, name):
+        """ find all elements by class name """
+
+        return self.browser.find_elements_by_class_name(name)
+
+    def find_by_id(self, name):
+        """ find element by id """
+
+        # Use this when you know id attribute of an element. With this
+        # strategy, the first element with the id attribute value matching the
+        # location will be returned. If no element has a matching id attribute,
+        # a NoSuchElementException will be raised.
+
+        return self.browser.find_element_by_id(name)
+
+    def find_all_by_id(self, name):
+        """ find all elements by id """
+
+        return self.browser.find_elements_by_id(name)
+
+    def find_by_name(self, name):
+        """ find element by name """
+
+        # Use this when you know name attribute of an element. With this
+        # strategy, the first element with the name attribute value matching
+        # the location will be returned. If no element has a matching name
+        # attribute, a NoSuchElementException will be raised.
+
+        return self.browser.find_element_by_name(name)
+
+    def find_all_by_name(self, name):
+        """ find all elements by name """
+
+        return self.browser.find_elements_by_name(name)
+
+    def find_by_xpath(self, xpath):
+        """ find element by xpath """
+
+        # XPath extends beyond (as well as supporting) the simple methods of
+        # locating by id or name attributes, and opens up all sorts of new
+        # possibilities such as locating the third checkbox on the page.
+
+        # One of the main reasons for using XPath is when you don’t have a
+        # suitable id or name attribute for the element you wish to locate.
+        # You can use XPath to either locate the element in absolute terms
+        # (not advised), or relative to an element that does have an id or
+        # name attribute. XPath locators can also be used to specify elements
+        # via attributes other than id and name.
+
+        # Absolute XPaths contain the location of all elements from the root
+        # (html) and as a result are likely to fail with only the slightest
+        # adjustment to the application. By finding a nearby element with an
+        # id or name attribute (ideally a parent element) you can locate your
+        # target element based on the relationship. This is much less likely
+        # to change and can make your tests more robust.
+
+        return self.browser.find_element_by_xpath(xpath)
+
+    def find_all_by_xpath(self, xpath):
+        """ find all elements by xpath """
+
+        return self.browser.find_elements_by_xpath(xpath)
+
+    def is_element_present(self, how, what):
+        """ check if element is present """
+
+        try:
+            self.browser.find_element(by=how, value=what)
+        except NoSuchElementException:
+            return False
+        return True
+
+    def click(self, how, what):
+        """ click on element """
+
+        try:
+            wait = WebDriverWait(self.browser, self.default_timeout)
+            wait.until(EC.element_to_be_clickable((how, what))).click()
+        except TimeoutException:
+            return False
+        return True
+
     def get_url(self):
         """ get url """
 
@@ -139,34 +239,75 @@ class YouTube:
         wait.until(EC.visibility_of_element_located((By.ID, 'video-title')))
         print('title:', self.browser.title)
 
-    def set_input_value(self, xpath, value):
-        """ set input value """
-
-        elem_send = self.find_by_xpath(xpath)
-        elem_send.send_keys(value)
-
-    def click(self, xpath):
-        """ click on element """
-
-        elem_click = self.find_by_xpath(xpath)
-        if elem_click:
-            elem_click.click()
-
-    def find_by_xpath(self, xpath):
-        """ find element by xpath """
-
-        return self.browser.find_element_by_xpath(xpath)
-
-    def find_by_class(self, name):
-        """ find element by class name """
-
-        return self.browser.find_element_by_class_name(name)
-
-    def is_element_present(self, how, what):
-        """ check if element is present """
+    def search(self, value):
+        """ search for the given input and print the result """
 
         try:
-            self.browser.find_element(by=how, value=what)
+            # search = self.find_by_xpath('//input[@id="search"]')
+            search = self.find_by_name('search_query')
+            search.click()
+            search.clear()
+            search.send_keys(value)
+            search.send_keys(Keys.DOWN)
+            search.send_keys(Keys.ENTER)
+            # self.click(By.ID, 'search-icon-legacy')
+            self.click(
+                By.XPATH,
+                "//div[@id='more']/yt-formatted-string/span[3]")
+            wait = WebDriverWait(self.browser, self.default_timeout)
+            wait.until(
+                EC.presence_of_all_elements_located(
+                    (By.ID, 'video-title')))
+            items = self.find_all_by_id('video-title')
+            index = 0
+            for item in items:
+                if item.is_displayed():
+                    index += 1
+                    print(index, item.text)
+                    print(index, item.get_attribute('href'))
+                    # print(item.get_attribute('innerHTML'))
+                    # print(item.get_attribute('outerHTML'))
+                    # print(item.get_attribute('innerText'))
+                    # print(item.get_attribute('outerText'))
+                    # print(item.get_attribute('textContent'))
+                    print('-' * 60)
+            return True
+        except (ElementNotInteractableException, NoSuchElementException):
+            return None
+
+    def play_video(self):
+        """ click on play button """
+
+        self.click(By.CLASS_NAME, 'ytp-play-button')
+
+    def mute_video(self):
+        """ click on mute button """
+
+        self.click(By.CLASS_NAME, 'ytp-mute-button')
+
+    def skip_ad(self, sleep=1):
+        """ skip ads """
+
+        while True:
+            try:
+                button = self.find_by_class('ytp-ad-skip-button-text')
+                if self.args.verbose:
+                    print(button.get_attribute('textContent'))
+                button.click()
+            except (ElementNotInteractableException, ElementClickInterceptedException):
+                time.sleep(sleep)
+            except NoSuchElementException:
+                break
+
+    def get_views(self):
+        """ get total of views """
+
+        try:
+            class_name = 'view-count'
+            views = self.find_by_class(class_name)
+            if self.args.verbose:
+                print('views:', views.get_attribute(
+                    'textContent').strip(' views'))
         except NoSuchElementException:
             return False
         return True
@@ -176,57 +317,6 @@ class YouTube:
 
         self.browser.close()
         self.browser.quit()
-
-    def skip_ad(self, sleep=1):
-        """ skip ads """
-
-        while True:
-            try:
-                button = self.find_by_class('ytp-ad-skip-button-text')
-                if button:
-                    if self.args.verbose:
-                        print(button.get_attribute('textContent'))
-                    button.click()
-            except (ElementNotInteractableException, ElementClickInterceptedException):
-                time.sleep(sleep)
-            except NoSuchElementException:
-                break
-
-    def play_video(self):
-        """ click on play button """
-
-        class_name = 'ytp-play-button'
-        # xpath = "//button[@class='ytp-play-button ytp-button']"
-        # xpath = "//button[@class='ytp-large-play-button ytp-button']"
-        wait = WebDriverWait(self.browser, self.default_timeout)
-        wait.until(EC.element_to_be_clickable((By.CLASS_NAME, class_name))).click()
-        # wait.until(EC.element_to_be_clickable((By.XPATH, xpath))).click()
-
-    def mute_video(self):
-        """ click on mute button """
-
-        class_name = 'ytp-mute-button'
-        # xpath = "//button[@class='ytp-large-mute-button ytp-button']"
-        # xpath = "//button[@class='ytp-mute-button ytp-button']"
-        wait = WebDriverWait(self.browser, self.default_timeout)
-        wait.until(EC.element_to_be_clickable((By.CLASS_NAME, class_name))).click()
-        # wait.until(EC.element_to_be_clickable((By.XPATH, xpath))).click()
-
-    def get_views(self):
-        """ get total of views """
-
-        try:
-            class_name = 'view-count'
-            # class_name = 'short-view-count'
-            # xpath = '//*[@id="count"]/yt-view-count-renderer/span[1]'
-            # xpath = '//*[@id="count"]/yt-view-count-renderer/span[2]'
-            # views = self.find_by_xpath(xpath)
-            views = self.find_by_class(class_name)
-            if self.args.verbose:
-                print('views:', views.get_attribute('textContent').strip(' views'))
-        except NoSuchElementException:
-            return None
-        return True
 
     def time_duration(self):
         """ get video duration time """
@@ -248,7 +338,10 @@ class YouTube:
         elif len(duration) == 2:
             _min, _sec = duration
 
-        _seconds = timedelta(hours=int(_hour), minutes=int(_min), seconds=int(_sec))
+        _seconds = timedelta(
+            hours=int(_hour),
+            minutes=int(_min),
+            seconds=int(_sec))
         return int(_seconds.total_seconds())
 
     def run(self):
@@ -257,18 +350,18 @@ class YouTube:
         self.get_url()
         self.get_title()
         self.play_video()
-        # self.mute_video()
         self.skip_ad()
         self.get_views()
         video_duration = self.time_duration()
         if video_duration:
             print('video duration time:', video_duration)
         seconds = self.to_seconds(duration=video_duration.split(':'))
-        sleep_time = randrange(seconds)
-        if self.args.verbose:
-            print('video duration time in seconds:', seconds)
-        print('stopping video in %s seconds' % sleep_time)
-        time.sleep(sleep_time)
+        if seconds:
+            sleep_time = randrange(seconds)
+            if self.args.verbose:
+                print('video duration time in seconds:', seconds)
+            print('stopping video in %s seconds' % sleep_time)
+            time.sleep(sleep_time)
         self.disconnect()
 
 
