@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """
-YouTube increase views tool
+Tool to increase YouTube views
 
 for more information about selenium, please visit:
 https://selenium-python.readthedocs.io/
@@ -369,7 +369,7 @@ def get_cli_args():
     """ get command line arguments """
 
     parser = argparse.ArgumentParser(
-        description='YouTube increase views tool',
+        description='Tool to increase YouTube views',
         add_help=False,
     )
 
