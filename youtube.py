@@ -235,9 +235,12 @@ class YouTube:
         # type is Boolean return true or not null return value for all other
         # ExpectedCondition types.
 
-        wait = WebDriverWait(self.browser, self.default_timeout)
-        wait.until(EC.visibility_of_element_located((By.ID, 'video-title')))
-        print('title:', self.browser.title)
+        try:
+            wait = WebDriverWait(self.browser, self.default_timeout)
+            wait.until(EC.visibility_of_element_located((By.ID, 'video-title')))
+            return self.browser.title
+        except TimeoutException:
+            return False
 
     def search(self, value):
         """ search for the given input and print the result """
@@ -312,6 +315,12 @@ class YouTube:
             return False
         return True
 
+    def refresh_page(self):
+        """ refresh the page """
+
+    self.browser.refresh()
+    # self.browser.execute_script('location.reload()')
+
     def disconnect(self):
         """ close webdriver connection """
 
@@ -347,21 +356,28 @@ class YouTube:
     def run(self):
         """ perform all actions """
 
+        count = 1
         self.get_url()
-        self.get_title()
-        self.play_video()
-        self.skip_ad()
-        self.get_views()
-        video_duration = self.time_duration()
-        if video_duration:
-            print('video duration time:', video_duration)
-        seconds = self.to_seconds(duration=video_duration.split(':'))
-        if seconds:
-            sleep_time = randrange(seconds)
-            if self.args.verbose:
-                print('video duration time in seconds:', seconds)
-            print('stopping video in %s seconds' % sleep_time)
-            time.sleep(sleep_time)
+        while (count <= self.args.visits):
+            title = self.get_title()
+            if self.args.visits > 1:
+                print('[{0}] {1}'.format(count, '-' * (len(title) + 4 - len(str(count)))))
+            print('title:', title)
+            self.play_video()
+            self.skip_ad()
+            self.get_views()
+            video_duration = self.time_duration()
+            if video_duration:
+                print('video duration time:', video_duration)
+            seconds = self.to_seconds(duration=video_duration.split(':'))
+            if seconds:
+                sleep_time = randrange(seconds)
+                if self.args.verbose:
+                    print('video duration time in seconds:', seconds)
+                print('stopping video in %s seconds' % sleep_time)
+                time.sleep(sleep_time)
+                self.refresh_page()
+                count += 1
         self.disconnect()
 
 
@@ -379,7 +395,9 @@ def get_cli_args():
     )
     main.add_argument(
         '--visits',
-        help='amount of visits per video',
+        type=int,
+        default=1,
+        help='amount of visits per video, default: 1',
     )
     main.add_argument(
         '--url',
