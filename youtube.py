@@ -376,8 +376,8 @@ class YouTube:
                     print('video duration time in seconds:', seconds)
                 print('stopping video in %s seconds' % sleep_time)
                 time.sleep(sleep_time)
-                self.refresh_page()
-                count += 1
+            self.refresh_page()
+            count += 1
         self.disconnect()
 
 
