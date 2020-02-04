@@ -318,8 +318,8 @@ class YouTube:
     def refresh_page(self):
         """ refresh the page """
 
-    self.browser.refresh()
-    # self.browser.execute_script('location.reload()')
+        self.browser.refresh()
+        # self.browser.execute_script('location.reload()')
 
     def disconnect(self):
         """ close webdriver connection """
