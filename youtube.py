@@ -466,3 +466,5 @@ def _main():
 
 if __name__ == '__main__':
     sys.exit(_main())
+
+# vim: set et ts=4 sw=4 sts=4 tw=80
