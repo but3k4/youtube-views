@@ -10,6 +10,7 @@ https://selenium-python.readthedocs.io/
 
 import time
 import sys
+import json
 import argparse
 from random import randrange
 from datetime import timedelta
@@ -22,6 +23,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import ElementClickInterceptedException
+import requests
 
 
 class YouTube:
@@ -48,6 +50,10 @@ class YouTube:
         self.options.add_argument('--single-process')
         # A string used to override the default user agent with a custom one
         self.user_agent = self.set_user_agent('mac_safari')
+        if self.args.proxy:
+            # Uses a specified proxy server, overrides system settings. This
+            # switch only affects HTTP and HTTPS requests
+            self.options.add_argument('--proxy-server={0}'.format(self.args.proxy))
         self.options.add_argument('--user-agent={0}'.format(self.user_agent))
         self.browser = webdriver.Chrome(options=self.options)
         self.default_timeout = 20
@@ -353,15 +359,35 @@ class YouTube:
             seconds=int(_sec))
         return int(_seconds.total_seconds())
 
+    def get_ipaddr(self, url='http://httpbin.org/ip'):
+        """ get current external IP """
+
+        if self.args.proxy:
+            proxy = 'http://{0}'.format(self.args.proxy)
+            proxies = {'http': proxy, 'https': proxy}
+            response = requests.get(url, proxies=proxies)
+        else:
+            response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                return json.loads(response.content)['origin']
+            except json.decoder.JSONDecodeError:
+                return None
+        return None
+
     def run(self):
         """ perform all actions """
 
         count = 1
         self.get_url()
-        while (count <= self.args.visits):
+        while count <= self.args.visits:
             title = self.get_title()
             if self.args.visits > 1:
                 print('[{0}] {1}'.format(count, '-' * (len(title) + 4 - len(str(count)))))
+            ip_address = self.get_ipaddr()
+            if ip_address:
+                print('external IP address:', ip_address)
             print('title:', title)
             self.play_video()
             self.skip_ad()
@@ -402,6 +428,10 @@ def get_cli_args():
     main.add_argument(
         '--url',
         help='YouTube video url',
+    )
+    main.add_argument(
+        '--proxy',
+        help='Uses a specified proxy server, e.g: 127.0.0.1:8118',
     )
     # optional arguments
     optional = parser.add_argument_group('Optional Arguments')
