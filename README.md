@@ -12,7 +12,7 @@ $ pip3 install -r requirements.txt
 ## Usage
 ```sh
 $ python3 bot.py --help
-usage: youtube.py [--visits VISITS] [--url URL] [--proxy PROXY] [-v] [-h]
+usage: bot.py [--visits VISITS] [--url URL] [--proxy PROXY] [-v] [-h]
 
 Tool to increase YouTube views
 
