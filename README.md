@@ -11,7 +11,7 @@ $ pip3 install -r requirements.txt
 
 ## Usage
 ```sh
-$ python3 youtube.py --help
+$ python3 bot.py --help
 usage: youtube.py [--visits VISITS] [--url URL] [--proxy PROXY] [-v] [-h]
 
 Tool to increase YouTube views
@@ -19,7 +19,7 @@ Tool to increase YouTube views
 Main Arguments:
   --visits VISITS  amount of visits per video, default: 1
   --url URL        YouTube video url
-  --proxy PROXY    Uses a specified proxy server, e.g: 127.0.0.1:8118
+  --proxy PROXY    Uses a specified proxy server, e.g: 127.0.0.1:8080
 
 Optional Arguments:
   -v, --verbose    show more output
@@ -29,5 +29,5 @@ $
 
 ## Example
 ```sh
-$ python3 youtube.py --visits 2 --url https://www.youtube.com/watch?v=HAQQUDbuudY --verbose
+$ python3 bot.py --visits 2 --url https://www.youtube.com/watch?v=HAQQUDbuudY --verbose
 ```

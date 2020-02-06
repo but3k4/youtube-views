@@ -1,19 +1,12 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
 """
-Tool to increase YouTube views
+YouTube
 
 for more information about selenium, please visit:
 https://selenium-python.readthedocs.io/
 """
 
 import time
-import sys
-import json
-import argparse
-from random import randrange
-from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -23,17 +16,19 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import ElementClickInterceptedException
-import requests
+import utils
 
 
 class YouTube:
-    """ YouTube class """
+    """ YouTube """
     # pylint: disable=R0904
 
-    def __init__(self, args):
+    def __init__(self, url='https://youtube.com', proxy=None, verbose=False):
         """ init variables """
 
-        self.args = args
+        self.url = url
+        self.proxy = proxy
+        self.verbose = verbose
         # All chrome options
         # https://peter.sh/experiments/chromium-command-line-switches/
         self.options = webdriver.ChromeOptions()
@@ -44,95 +39,18 @@ class YouTube:
         self.options.add_argument('--disable-gpu')
         # Disable audio
         self.options.add_argument('--mute-audio')
-        # Sets the initial window size
-        # self.options.add_argument('--window-size=1280x1696')
         # Runs the renderer and plugins in the same process as the browser
         self.options.add_argument('--single-process')
-        # A string used to override the default user agent with a custom one
-        self.user_agent = self.set_user_agent('mac_safari')
-        if self.args.proxy:
+        if self.proxy:
             # Uses a specified proxy server, overrides system settings. This
             # switch only affects HTTP and HTTPS requests
-            self.options.add_argument('--proxy-server={0}'.format(self.args.proxy))
+            self.options.add_argument('--proxy-server={0}'.format(self.proxy))
+        # A string used to override the default user agent with a custom one
+        self.user_agent = utils.user_agent()
         self.options.add_argument('--user-agent={0}'.format(self.user_agent))
         self.browser = webdriver.Chrome(options=self.options)
         self.default_timeout = 20
         self.browser.implicitly_wait(self.default_timeout)
-
-    @staticmethod
-    def set_user_agent(name='mac_safari'):
-        """ get user agent """
-
-        user_agents = {
-            'iphone11_chrome': [
-                'Mozilla/5.0',
-                '(iPhone; CPU iPhone OS 13_3 like Mac OS X)',
-                'AppleWebKit/605.1.15 (KHTML, like Gecko)',
-                'CriOS/79.0.3945.73',
-                'Mobile/15E148 Safari/604.1',
-            ],
-            'iphone11_safari': [
-                'Mozilla/5.0'
-                '(iPhone; CPU iPhone OS 13_3 like Mac OS X)'
-                'AppleWebKit/605.1.15',
-                '(KHTML, like Gecko)',
-                'Version/13.0.4 Mobile/15E148 Safari/604.1',
-            ],
-            'iphone10_chrome': [
-                'Mozilla/5.0',
-                '(iPhone; CPU iPhone OS 12_1 like Mac OS X)',
-                'AppleWebKit/605.1.15',
-                '(KHTML, like Gecko)',
-                'Version/12.0 Mobile/15E148 Safari/604.1',
-            ],
-            'oneplus5_chrome': [
-                'Mozilla/5.0'
-                '(Linux; Android 9; ONEPLUS A5000)',
-                'AppleWebKit/537.36',
-                '(KHTML, like Gecko)',
-                'Chrome/79.0.3945.136',
-                'Mobile Safari/537.36',
-            ],
-            'oneplus5_firefox': [
-                'Mozilla/5.0',
-                '(Android 9; Mobile; rv:68.4.2)',
-                'Gecko/68.4.2',
-                'Firefox/68.4.2',
-            ],
-            'mac_safari': [
-                'Mozilla/5.0',
-                '(Macintosh; Intel Mac OS X 10_15_2)',
-                'AppleWebKit/605.1.15',
-                '(KHTML, like Gecko) Version/13.0.4',
-                'Safari/605.1.15',
-            ],
-            'mac_chrome': [
-                'Mozilla/5.0',
-                '(Macintosh; Intel Mac OS X 10_15_2)',
-                'AppleWebKit/537.36',
-                '(KHTML, like Gecko)',
-                'Chrome/79.0.3945.130 Safari/537.36',
-            ],
-            'mac_firefox': [
-                'Mozilla/5.0',
-                '(Macintosh; Intel Mac OS X 10.15; rv:72.0)',
-                'Gecko/20100101 Firefox/72.0',
-            ],
-            'linux_chrome': [
-                'Mozilla/5.0',
-                '(X11; Linux x86_64)',
-                'AppleWebKit/537.36',
-                '(KHTML, like Gecko)',
-                'Chrome/79.0.3945.130',
-                'Safari/537.36',
-            ],
-            'linux_firefox': [
-                'Mozilla/5.0',
-                '(X11; Linux x86_64; rv:72.0)',
-                'Gecko/20100101 Firefox/72.0',
-            ],
-        }
-        return ' '.join(user_agents.get(name, 'mac_safari'))
 
     def find_by_class(self, name):
         """ find element by class name """
@@ -219,19 +137,25 @@ class YouTube:
     def click(self, how, what):
         """ click on element """
 
-        try:
-            wait = WebDriverWait(self.browser, self.default_timeout)
-            wait.until(EC.element_to_be_clickable((how, what))).click()
-        except TimeoutException:
-            return False
-        return True
+        count = 1
+        while True:
+            try:
+                wait = WebDriverWait(self.browser, self.default_timeout)
+                wait.until(EC.element_to_be_clickable((how, what))).click()
+            except ElementClickInterceptedException:
+                if count >= 10:
+                    break
+                count += 1
+                time.sleep(0.5)
+            except TimeoutException:
+                break
 
     def get_url(self):
         """ get url """
 
-        self.browser.get(self.args.url)
+        self.browser.get(self.url)
 
-    def get_title(self):
+    def get_title(self, title='video-title'):
         """ get video title """
 
         # waits up to 10 seconds before throwing a TimeoutException unless it
@@ -243,23 +167,21 @@ class YouTube:
 
         try:
             wait = WebDriverWait(self.browser, self.default_timeout)
-            wait.until(EC.visibility_of_element_located((By.ID, 'video-title')))
+            wait.until(EC.visibility_of_element_located((By.ID, title)))
             return self.browser.title
-        except TimeoutException:
+        except (TimeoutException, AttributeError):
             return False
 
     def search(self, value):
         """ search for the given input and print the result """
 
         try:
-            # search = self.find_by_xpath('//input[@id="search"]')
             search = self.find_by_name('search_query')
             search.click()
             search.clear()
             search.send_keys(value)
             search.send_keys(Keys.DOWN)
             search.send_keys(Keys.ENTER)
-            # self.click(By.ID, 'search-icon-legacy')
             self.click(
                 By.XPATH,
                 "//div[@id='more']/yt-formatted-string/span[3]")
@@ -274,33 +196,29 @@ class YouTube:
                     index += 1
                     print(index, item.text)
                     print(index, item.get_attribute('href'))
-                    # print(item.get_attribute('innerHTML'))
-                    # print(item.get_attribute('outerHTML'))
-                    # print(item.get_attribute('innerText'))
-                    # print(item.get_attribute('outerText'))
-                    # print(item.get_attribute('textContent'))
                     print('-' * 60)
             return True
         except (ElementNotInteractableException, NoSuchElementException):
             return None
 
-    def play_video(self):
+    def play_video(self, class_name='ytp-play-button'):
         """ click on play button """
 
-        self.click(By.CLASS_NAME, 'ytp-play-button')
+        self.click(By.CLASS_NAME, class_name)
+        self.skip_ad()
 
-    def mute_video(self):
+    def mute_video(self, class_name='ytp-mute-button'):
         """ click on mute button """
 
-        self.click(By.CLASS_NAME, 'ytp-mute-button')
+        self.click(By.CLASS_NAME, class_name)
 
-    def skip_ad(self, sleep=1):
+    def skip_ad(self, class_name='ytp-ad-skip-button-text', sleep=1):
         """ skip ads """
 
         while True:
             try:
-                button = self.find_by_class('ytp-ad-skip-button-text')
-                if self.args.verbose:
+                button = self.find_by_class(class_name)
+                if self.verbose:
                     print(button.get_attribute('textContent'))
                 button.click()
             except (ElementNotInteractableException, ElementClickInterceptedException):
@@ -308,15 +226,13 @@ class YouTube:
             except NoSuchElementException:
                 break
 
-    def get_views(self):
+    def get_views(self, class_name='view-count'):
         """ get total of views """
 
         try:
-            class_name = 'view-count'
-            views = self.find_by_class(class_name)
-            if self.args.verbose:
-                print('views:', views.get_attribute(
-                    'textContent').strip(' views'))
+            views = self.find_by_class(class_name).get_attribute('textContent')
+            if self.verbose:
+                print('views:', views.strip(' views'))
         except NoSuchElementException:
             return False
         return True
@@ -325,146 +241,19 @@ class YouTube:
         """ refresh the page """
 
         self.browser.refresh()
-        # self.browser.execute_script('location.reload()')
+
+    def time_duration(self, class_name='ytp-time-duration'):
+        """ get video duration time """
+
+        duration = self.find_by_class(class_name)
+        if duration:
+            return duration.get_attribute('textContent')
+        return None
 
     def disconnect(self):
         """ close webdriver connection """
 
         self.browser.close()
         self.browser.quit()
-
-    def time_duration(self):
-        """ get video duration time """
-
-        duration = self.find_by_class('ytp-time-duration')
-        if duration:
-            return duration.get_attribute('textContent')
-        return None
-
-    @staticmethod
-    def to_seconds(duration='0:02'):
-        """ convert video duration time to seconds """
-
-        if isinstance(duration, str):
-            duration = duration.split(':')
-        _hour, _min, _sec = (0, 0, 0)
-        if len(duration) == 3:
-            _hour, _min, _sec = duration
-        elif len(duration) == 2:
-            _min, _sec = duration
-
-        _seconds = timedelta(
-            hours=int(_hour),
-            minutes=int(_min),
-            seconds=int(_sec))
-        return int(_seconds.total_seconds())
-
-    def get_ipaddr(self, url='http://httpbin.org/ip'):
-        """ get current external IP """
-
-        if self.args.proxy:
-            proxy = 'http://{0}'.format(self.args.proxy)
-            proxies = {'http': proxy, 'https': proxy}
-            response = requests.get(url, proxies=proxies)
-        else:
-            response = requests.get(url)
-
-        if response.status_code == 200:
-            try:
-                return json.loads(response.content)['origin']
-            except json.decoder.JSONDecodeError:
-                return None
-        return None
-
-    def run(self):
-        """ perform all actions """
-
-        count = 1
-        self.get_url()
-        while count <= self.args.visits:
-            title = self.get_title()
-            if self.args.visits > 1:
-                print('[{0}] {1}'.format(count, '-' * (len(title) + 4 - len(str(count)))))
-            ip_address = self.get_ipaddr()
-            if ip_address:
-                print('external IP address:', ip_address)
-            print('title:', title)
-            self.play_video()
-            self.skip_ad()
-            self.get_views()
-            video_duration = self.time_duration()
-            if video_duration:
-                print('video duration time:', video_duration)
-            seconds = self.to_seconds(duration=video_duration.split(':'))
-            if seconds:
-                sleep_time = randrange(seconds)
-                if self.args.verbose:
-                    print('video duration time in seconds:', seconds)
-                print('stopping video in %s seconds' % sleep_time)
-                time.sleep(sleep_time)
-            self.refresh_page()
-            count += 1
-        self.disconnect()
-
-
-def get_cli_args():
-    """ get command line arguments """
-
-    parser = argparse.ArgumentParser(
-        description='Tool to increase YouTube views',
-        add_help=False,
-    )
-
-    # main arguments
-    main = parser.add_argument_group(
-        'Main Arguments',
-    )
-    main.add_argument(
-        '--visits',
-        type=int,
-        default=1,
-        help='amount of visits per video, default: 1',
-    )
-    main.add_argument(
-        '--url',
-        help='YouTube video url',
-    )
-    main.add_argument(
-        '--proxy',
-        help='Uses a specified proxy server, e.g: 127.0.0.1:8118',
-    )
-    # optional arguments
-    optional = parser.add_argument_group('Optional Arguments')
-    optional.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        default=False,
-        help='show more output',
-    )
-    optional.add_argument(
-        '-h', '--help',
-        action='store_true',
-        default=False,
-        help='show this help message and exit',
-    )
-
-    args = parser.parse_args()
-    if len(sys.argv) == 1 or args.help:
-        parser.print_help()
-        sys.exit(0)
-
-    return args
-
-
-def _main():
-    """ main function """
-
-    cli_args = get_cli_args()
-    youtube = YouTube(cli_args)
-    youtube.run()
-
-
-if __name__ == '__main__':
-    sys.exit(_main())
 
 # vim: set et ts=4 sw=4 sts=4 tw=80
