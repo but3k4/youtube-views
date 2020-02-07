@@ -9,6 +9,8 @@ import json
 import argparse
 from random import choice
 from datetime import timedelta
+import socket
+import time
 import requests
 
 
@@ -106,7 +108,7 @@ def user_agent():
 
 
 def to_seconds(duration='0:02'):
-    """ convert video duration time to seconds """
+    """ converts video duration time to seconds """
 
     if isinstance(duration, str):
         duration = duration.split(':')
@@ -124,7 +126,7 @@ def to_seconds(duration='0:02'):
 
 
 def get_ipaddr(url='http://httpbin.org/ip', proxy=None):
-    """ get current external IP """
+    """ gets the external IP address """
 
     if proxy:
         proxy = 'http://{0}'.format(proxy)
@@ -141,8 +143,41 @@ def get_ipaddr(url='http://httpbin.org/ip', proxy=None):
     return None
 
 
+def renew_tor_ipaddr(ipaddr='127.0.0.1', port=9051, password=None, time_wait=0.2, verbose=False):
+    """ connects to TOR and request a new IP address """
+
+    try:
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        conn.connect((ipaddr, int(port)))
+        time.sleep(time_wait)
+        if password:
+            conn.send('AUTHENTICATE "{0}"\r\n'.format(password).encode())
+        else:
+            conn.send('AUTHENTICATE\r\n'.encode())
+        auth_response = conn.recv(128).decode()
+        time.sleep(time_wait)
+        if 'OK' in auth_response:
+            if verbose:
+                print('tor: authentication success')
+                print('tor: requesting new IP address')
+            conn.send('SIGNAL NEWNYM\r\n'.encode())
+            signal_response = conn.recv(128).decode()
+            if 'OK' in signal_response and verbose:
+                print('tor: new IP address requested successfully')
+        elif 'failed' in auth_response:
+            print('tor: authentication failed')
+            conn.close()
+        time.sleep(time_wait)
+        conn.send('QUIT\r\n'.encode())
+        # conn_response = conn.recv(128).decode()
+        conn.close()
+    except (socket.error, socket.timeout, ConnectionRefusedError, OverflowError):
+        return False
+    return True
+
+
 def get_cli_args():
-    """ get command line arguments """
+    """ gets command line arguments """
 
     parser = argparse.ArgumentParser(
         description='Tool to increase YouTube views',
@@ -165,26 +200,32 @@ def get_cli_args():
     )
     main.add_argument(
         '--proxy',
-        help='Uses a specified proxy server, e.g: 127.0.0.1:8118',
+        help='set the proxy server to be used. e.g: 127.0.0.1:8118',
+    )
+    main.add_argument(
+        '--enable-tor',
+        action='store_true',
+        help='enable TOR support (You must have installed TOR at your system)',
     )
     # optional arguments
     optional = parser.add_argument_group('Optional Arguments')
     optional.add_argument(
         '-v', '--verbose',
         action='store_true',
-        default=False,
         help='show more output',
     )
     optional.add_argument(
         '-h', '--help',
         action='store_true',
-        default=False,
         help='show this help message and exit',
     )
 
     args = parser.parse_args()
     if len(sys.argv) == 1 or args.help:
         parser.print_help()
+        sys.exit(0)
+    if args.enable_tor is True and args.proxy is None:
+        parser.error('--enable-tor requires --proxy')
         sys.exit(0)
 
     return args
