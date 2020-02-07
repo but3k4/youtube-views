@@ -53,7 +53,7 @@ class YouTube:
         self.browser.implicitly_wait(self.default_timeout)
 
     def find_by_class(self, name):
-        """ find element by class name """
+        """ finds an element by class name """
 
         # Use this when you want to locate an element by class attribute name.
         # With this strategy, the first element with the matching class
@@ -63,12 +63,12 @@ class YouTube:
         return self.browser.find_element_by_class_name(name)
 
     def find_all_by_class(self, name):
-        """ find all elements by class name """
+        """ finds all elements by class name """
 
         return self.browser.find_elements_by_class_name(name)
 
     def find_by_id(self, name):
-        """ find element by id """
+        """ finds a element by id """
 
         # Use this when you know id attribute of an element. With this
         # strategy, the first element with the id attribute value matching the
@@ -78,12 +78,12 @@ class YouTube:
         return self.browser.find_element_by_id(name)
 
     def find_all_by_id(self, name):
-        """ find all elements by id """
+        """ finds all elements by id """
 
         return self.browser.find_elements_by_id(name)
 
     def find_by_name(self, name):
-        """ find element by name """
+        """ finds a element by name """
 
         # Use this when you know name attribute of an element. With this
         # strategy, the first element with the name attribute value matching
@@ -93,12 +93,12 @@ class YouTube:
         return self.browser.find_element_by_name(name)
 
     def find_all_by_name(self, name):
-        """ find all elements by name """
+        """ finds all elements by name """
 
         return self.browser.find_elements_by_name(name)
 
     def find_by_xpath(self, xpath):
-        """ find element by xpath """
+        """ finds a element by xpath """
 
         # XPath extends beyond (as well as supporting) the simple methods of
         # locating by id or name attributes, and opens up all sorts of new
@@ -121,7 +121,7 @@ class YouTube:
         return self.browser.find_element_by_xpath(xpath)
 
     def find_all_by_xpath(self, xpath):
-        """ find all elements by xpath """
+        """ finds all elements by xpath """
 
         return self.browser.find_elements_by_xpath(xpath)
 
@@ -134,8 +134,8 @@ class YouTube:
             return False
         return True
 
-    def click(self, how, what):
-        """ click on element """
+    def click(self, how, what, time_wait=0.5):
+        """ clicks on the element """
 
         count = 1
         while True:
@@ -143,20 +143,21 @@ class YouTube:
                 wait = WebDriverWait(self.browser, self.default_timeout)
                 wait.until(EC.element_to_be_clickable((how, what))).click()
             except ElementClickInterceptedException:
-                if count >= 10:
-                    break
-                count += 1
-                time.sleep(0.5)
+                pass
             except TimeoutException:
                 break
+            count += 1
+            if count >= 10:
+                break
+            time.sleep(time_wait)
 
     def get_url(self):
-        """ get url """
+        """ opens the URL """
 
         self.browser.get(self.url)
 
     def get_title(self, title='video-title'):
-        """ get video title """
+        """ gets the video title """
 
         # waits up to 10 seconds before throwing a TimeoutException unless it
         # finds the element to return within 10 seconds. WebDriverWait by
@@ -173,7 +174,7 @@ class YouTube:
             return False
 
     def search(self, value):
-        """ search for the given input and print the result """
+        """ searches for the given term(s) and print the result """
 
         try:
             search = self.find_by_name('search_query')
@@ -202,18 +203,18 @@ class YouTube:
             return None
 
     def play_video(self, class_name='ytp-play-button'):
-        """ click on play button """
+        """ clicks on the play button """
 
         self.click(By.CLASS_NAME, class_name)
         self.skip_ad()
 
     def mute_video(self, class_name='ytp-mute-button'):
-        """ click on mute button """
+        """ clicks on the mute button """
 
         self.click(By.CLASS_NAME, class_name)
 
-    def skip_ad(self, class_name='ytp-ad-skip-button-text', sleep=1):
-        """ skip ads """
+    def skip_ad(self, class_name='ytp-ad-skip-button-text', time_wait=0.5):
+        """ skips ads """
 
         while True:
             try:
@@ -222,36 +223,36 @@ class YouTube:
                     print(button.get_attribute('textContent'))
                 button.click()
             except (ElementNotInteractableException, ElementClickInterceptedException):
-                time.sleep(sleep)
+                time.sleep(time_wait)
             except NoSuchElementException:
                 break
 
     def get_views(self, class_name='view-count'):
-        """ get total of views """
+        """ gets the total views """
 
         try:
             views = self.find_by_class(class_name).get_attribute('textContent')
-            if self.verbose:
-                print('views:', views.strip(' views'))
+            return views.strip(' views')
         except NoSuchElementException:
-            return False
-        return True
+            return None
 
     def refresh_page(self):
-        """ refresh the page """
+        """ refreshes the page """
 
         self.browser.refresh()
 
     def time_duration(self, class_name='ytp-time-duration'):
-        """ get video duration time """
+        """ gets the video duration time """
 
-        duration = self.find_by_class(class_name)
-        if duration:
-            return duration.get_attribute('textContent')
-        return None
+        try:
+            duration = self.find_by_class(class_name)
+            if duration:
+                return duration.get_attribute('textContent')
+        except NoSuchElementException:
+            return None
 
     def disconnect(self):
-        """ close webdriver connection """
+        """ closes the connection """
 
         self.browser.close()
         self.browser.quit()
