@@ -143,6 +143,20 @@ def get_ipaddr(url='http://httpbin.org/ip', proxy=None):
     return None
 
 
+def get_host_by_ipaddr(ipaddr):
+    """ returns a reverse DNS name if available """
+
+    try:
+        socket.inet_aton(ipaddr)
+        return socket.gethostbyaddr(ipaddr)[0]
+    except socket.herror:
+        return 'no reverse DNS found'
+    except (socket.error, TypeError):
+        return 'illegal IP address string'
+    except socket.timeout:
+        return 'DNS timeout'
+
+
 def renew_tor_ipaddr(ipaddr='127.0.0.1', port=9051, password=None, time_wait=0.2, verbose=False):
     """ connects to TOR and request a new IP address """
 
