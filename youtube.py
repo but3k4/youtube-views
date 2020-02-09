@@ -146,7 +146,7 @@ class YouTube:
                 pass
             except TimeoutException:
                 break
-            if attempts === max_attempts:
+            if attempts == max_attempts:
                 break
             attempts += 1
             time.sleep(time_wait)
