@@ -108,7 +108,7 @@ def user_agent():
 
 
 def to_seconds(duration='0:02'):
-    """ converts video duration time to seconds """
+    """ converts h:m:s to seconds """
 
     if isinstance(duration, str):
         duration = duration.split(':')
@@ -188,6 +188,24 @@ def renew_tor_ipaddr(ipaddr='127.0.0.1', port=9051, password=None, time_wait=0.2
     except (socket.error, socket.timeout, ConnectionRefusedError, OverflowError):
         return False
     return True
+
+
+def get_new_tor_ipaddr(password=None, proxy=None, max_attempts=10, time_wait=5):
+    """ gets a new Tor IP address """
+
+    attempts = 0
+    current_ipaddr, new_ipaddr = None, None
+
+    while current_ipaddr == new_ipaddr:
+        current_ipaddr = get_ipaddr(proxy=proxy)
+        renew_tor_ipaddr(password=password)
+        time.sleep(time_wait)
+        new_ipaddr = get_ipaddr(proxy=proxy)
+        if attempts == max_attempts:
+            print('failed to get a new Tor IP address')
+            return None
+        attempts += 1
+    return new_ipaddr
 
 
 def get_cli_args():

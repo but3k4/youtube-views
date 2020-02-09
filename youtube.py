@@ -134,10 +134,10 @@ class YouTube:
             return False
         return True
 
-    def click(self, how, what, time_wait=0.5):
+    def click(self, how, what, max_attempts=10, time_wait=0.5):
         """ clicks on the element """
 
-        count = 1
+        attempts = 0
         while True:
             try:
                 wait = WebDriverWait(self.browser, self.default_timeout)
@@ -146,15 +146,15 @@ class YouTube:
                 pass
             except TimeoutException:
                 break
-            count += 1
-            if count >= 10:
+            if attempts === max_attempts:
                 break
+            attempts += 1
             time.sleep(time_wait)
 
     def get_url(self):
         """ opens the URL """
 
-        self.browser.get(self.url)
+        self.browser.get(url)
 
     def get_title(self, title='video-title'):
         """ gets the video title """
@@ -213,9 +213,10 @@ class YouTube:
 
         self.click(By.CLASS_NAME, class_name)
 
-    def skip_ad(self, class_name='ytp-ad-skip-button-text', time_wait=0.5):
+    def skip_ad(self, class_name='ytp-ad-skip-button-text', max_attempts=20, time_wait=0.5):
         """ skips ads """
 
+        attempts = 0
         while True:
             try:
                 button = self.find_by_class(class_name)
@@ -226,6 +227,9 @@ class YouTube:
                 time.sleep(time_wait)
             except NoSuchElementException:
                 break
+            if attempts == max_attempts:
+                break
+            attempts += 1
 
     def get_views(self, class_name='view-count'):
         """ gets the total views """
