@@ -6,8 +6,8 @@
 import sys
 import time
 from random import randrange
-from youtube import YouTube
-import utils
+from modules.youtube import YouTube
+from modules import utils
 
 
 class Bot:

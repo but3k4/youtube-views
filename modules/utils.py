@@ -198,7 +198,10 @@ def get_new_tor_ipaddr(password=None, proxy=None, max_attempts=10, time_wait=5):
 
     while current_ipaddr == new_ipaddr:
         current_ipaddr = get_ipaddr(proxy=proxy)
-        renew_tor_ipaddr(password=password)
+        if proxy:
+            renew_tor_ipaddr(ipaddr=proxy.split(':')[0], password=password)
+        else:
+            renew_tor_ipaddr(password=password)
         time.sleep(time_wait)
         new_ipaddr = get_ipaddr(proxy=proxy)
         if attempts == max_attempts:
