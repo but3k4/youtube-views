@@ -154,7 +154,7 @@ class YouTube:
     def get_url(self):
         """ opens the URL """
 
-        self.browser.get(url)
+        self.browser.get(self.url)
 
     def get_title(self, title='video-title'):
         """ gets the video title """
