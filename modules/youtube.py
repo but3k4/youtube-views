@@ -125,31 +125,15 @@ class YouTube:
 
         return self.browser.find_elements_by_xpath(xpath)
 
-    def is_element_present(self, how, what):
-        """ check if element is present """
-
-        try:
-            self.browser.find_element(by=how, value=what)
-        except NoSuchElementException:
-            return False
-        return True
-
-    def click(self, how, what, max_attempts=10, time_wait=0.5):
+    def click(self, how, what):
         """ clicks on the element """
 
-        attempts = 0
-        while True:
-            try:
-                wait = WebDriverWait(self.browser, self.default_timeout)
-                wait.until(EC.element_to_be_clickable((how, what))).click()
-            except ElementClickInterceptedException:
-                pass
-            except TimeoutException:
-                break
-            if attempts == max_attempts:
-                break
-            attempts += 1
-            time.sleep(time_wait)
+        try:
+            wait = WebDriverWait(self.browser, self.default_timeout)
+            wait.until(EC.element_to_be_clickable((how, what))).click()
+        except (ElementClickInterceptedException, TimeoutException):
+            return False
+        return True
 
     def get_url(self):
         """ opens the URL """
@@ -168,10 +152,10 @@ class YouTube:
 
         try:
             wait = WebDriverWait(self.browser, self.default_timeout)
-            wait.until(EC.visibility_of_element_located((By.ID, title)))
+            wait.until(EC.presence_of_element_located((By.ID, title)))
             return self.browser.title
-        except (TimeoutException, AttributeError):
-            return False
+        except TimeoutException:
+            return None
 
     def search(self, value):
         """ searches for the given term(s) and print the result """
@@ -205,8 +189,14 @@ class YouTube:
     def play_video(self, class_name='ytp-play-button'):
         """ clicks on the play button """
 
-        self.click(By.CLASS_NAME, class_name)
-        self.skip_ad()
+        button = self.click(By.CLASS_NAME, class_name)
+        if button:
+            if self.verbose:
+                print('clicked on the play button')
+            self.skip_ad()
+        else:
+            if self.verbose:
+                print('failed to click on the play button')
 
     def mute_video(self, class_name='ytp-mute-button'):
         """ clicks on the mute button """
@@ -217,17 +207,16 @@ class YouTube:
         """ skips ads """
 
         attempts = 0
-        while True:
+        while attempts <= max_attempts:
             try:
                 button = self.find_by_class(class_name)
-                if self.verbose:
-                    print(button.get_attribute('textContent'))
-                button.click()
+                if button.is_enabled() or button.is_displayed():
+                    if self.verbose:
+                        print(button.get_attribute('textContent').lower())
+                    button.click()
             except (ElementNotInteractableException, ElementClickInterceptedException):
                 time.sleep(time_wait)
-            except NoSuchElementException:
-                break
-            if attempts == max_attempts:
+            except (NoSuchElementException, TimeoutException, AttributeError):
                 break
             attempts += 1
 
@@ -254,6 +243,7 @@ class YouTube:
                 return duration.get_attribute('textContent')
         except NoSuchElementException:
             return None
+        return None
 
     def disconnect(self):
         """ closes the connection """
