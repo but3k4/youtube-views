@@ -189,14 +189,9 @@ class YouTube:
     def play_video(self, class_name='ytp-play-button'):
         """ clicks on the play button """
 
-        button = self.click(By.CLASS_NAME, class_name)
-        if button:
-            if self.verbose:
-                print('clicked on the play button')
-            self.skip_ad()
-        else:
-            if self.verbose:
-                print('failed to click on the play button')
+        self.click(By.CLASS_NAME, class_name)
+        if self.verbose:
+            print('clicked on the play button')
 
     def mute_video(self, class_name='ytp-mute-button'):
         """ clicks on the mute button """
