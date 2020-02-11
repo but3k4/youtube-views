@@ -16,6 +16,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import JavascriptException
 from modules import utils
 
 
@@ -41,6 +42,8 @@ class YouTube:
         self.options.add_argument('--mute-audio')
         # Runs the renderer and plugins in the same process as the browser
         self.options.add_argument('--single-process')
+        # Autoplay policy
+        self.options.add_argument('--autoplay-policy=no-user-gesture-required')
         if self.proxy:
             # Uses a specified proxy server, overrides system settings. This
             # switch only affects HTTP and HTTPS requests
@@ -184,7 +187,7 @@ class YouTube:
                     print('-' * 60)
             return True
         except (ElementNotInteractableException, NoSuchElementException):
-            return None
+            return False
 
     def play_video(self, class_name='ytp-play-button'):
         """ clicks on the play button """
@@ -223,6 +226,25 @@ class YouTube:
             return views.strip(' views')
         except NoSuchElementException:
             return None
+
+    def get_player_state(self):
+        """  returns the state of the player """
+
+        # Possible values are:
+        # -1 = unstarted
+        #  0 = ended
+        #  1 = playing
+        #  2 = paused
+        #  3 = buffering
+        #  5 = video cued
+        # for more information, you can check the official API documentation:
+        # https://developers.google.com/youtube/iframe_api_reference
+
+        try:
+            js_element = "return document.getElementById('movie_player').getPlayerState()"
+            return self.browser.execute_script(js_element)
+        except JavascriptException:
+            return -2
 
     def refresh_page(self):
         """ refreshes the page """
