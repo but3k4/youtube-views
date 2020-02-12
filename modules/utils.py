@@ -75,33 +75,6 @@ def user_agent():
             '(X11; Linux x86_64; rv:72.0)',
             'Gecko/20100101 Firefox/72.0',
         ],
-        'opera_on_windows': [
-            'Mozilla/5.0',
-            '(Windows NT 10.0; Win64; x64)',
-            'AppleWebKit/537.36',
-            '(KHTML, like Gecko)',
-            'Chrome/80.0.3987.87',
-            'Safari/537.36',
-            'OPR/66.0.3515.44',
-        ],
-        'opera_on_mac': [
-            'Mozilla/5.0',
-            '(Macintosh; Intel Mac OS X 10_14_5)',
-            'AppleWebKit/537.36',
-            '(KHTML, like Gecko)',
-            'Chrome/80.0.3987.87',
-            'Safari/537.36',
-            'OPR/66.0.3515.44',
-        ],
-        'opera_on_linux': [
-            'Mozilla/5.0',
-            '(X11; Linux x86_64)',
-            'AppleWebKit/537.36',
-            '(KHTML, like Gecko)',
-            'Chrome/80.0.3987.87',
-            'Safari/537.36',
-            'OPR/66.0.3515.44',
-        ],
     }
     values = [value for key, value in user_agents.items()]
     return ' '.join(choice(values))

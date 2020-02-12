@@ -193,8 +193,6 @@ class YouTube:
         """ clicks on the play button """
 
         self.click(By.CLASS_NAME, class_name)
-        if self.verbose:
-            print('clicked on the play button')
 
     def mute_video(self, class_name='ytp-mute-button'):
         """ clicks on the mute button """

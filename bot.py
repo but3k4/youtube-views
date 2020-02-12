@@ -26,9 +26,9 @@ class Bot:
         ipaddr = None
         while count <= self.opts.visits:
             if self.opts.enable_tor:
-                ip_address = utils.get_new_tor_ipaddr(proxy=self.opts.proxy)
-            if not ip_address:
-                ip_address = utils.get_ipaddr(proxy=self.opts.proxy)
+                ipaddr = utils.get_new_tor_ipaddr(proxy=self.opts.proxy)
+            if not ipaddr:
+                ipaddr = utils.get_ipaddr(proxy=self.opts.proxy)
             youtube = YouTube(
                 url=self.opts.url,
                 proxy=self.opts.proxy,
@@ -44,13 +44,17 @@ class Bot:
             if self.opts.visits:
                 length = (len(title) + 4 - len(str(count)))
                 print('[{0}] {1}'.format(count, '-' * length))
-            if ip_address:
-                print('external IP address:', ip_address)
+            if ipaddr:
+                print('external IP address:', ipaddr)
             print('title:', title)
             views = youtube.get_views()
             if views:
                 print('views:', views)
             # youtube.play_video()
+            youtube.skip_ad()
+            if self.opts.verbose:
+                is_playing = youtube.get_player_state()
+                print('is_playing:', is_playing)
             video_duration = youtube.time_duration()
             seconds = 30
             if video_duration:
