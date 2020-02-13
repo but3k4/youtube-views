@@ -55,7 +55,7 @@ class YouTube:
         self.default_timeout = 20
         self.browser.implicitly_wait(self.default_timeout)
 
-    def find_by_class(self, name):
+    def find_by_class(self, class_name):
         """ finds an element by class name """
 
         # Use this when you want to locate an element by class attribute name.
@@ -63,14 +63,14 @@ class YouTube:
         # attribute name will be returned. If no element has a matching class
         # attribute name, a NoSuchElementException will be raised.
 
-        return self.browser.find_element_by_class_name(name)
+        return self.browser.find_element_by_class_name(class_name)
 
-    def find_all_by_class(self, name):
+    def find_all_by_class(self, class_name):
         """ finds all elements by class name """
 
-        return self.browser.find_elements_by_class_name(name)
+        return self.browser.find_elements_by_class_name(class_name)
 
-    def find_by_id(self, name):
+    def find_by_id(self, id_name):
         """ finds a element by id """
 
         # Use this when you know id attribute of an element. With this
@@ -78,12 +78,12 @@ class YouTube:
         # location will be returned. If no element has a matching id attribute,
         # a NoSuchElementException will be raised.
 
-        return self.browser.find_element_by_id(name)
+        return self.browser.find_element_by_id(id_name)
 
-    def find_all_by_id(self, name):
+    def find_all_by_id(self, id_name):
         """ finds all elements by id """
 
-        return self.browser.find_elements_by_id(name)
+        return self.browser.find_elements_by_id(id_name)
 
     def find_by_name(self, name):
         """ finds a element by name """
@@ -143,7 +143,7 @@ class YouTube:
 
         self.browser.get(self.url)
 
-    def get_title(self, title='video-title'):
+    def get_title(self, id_name='video-title'):
         """ gets the video title """
 
         # waits up to 10 seconds before throwing a TimeoutException unless it
@@ -155,7 +155,7 @@ class YouTube:
 
         try:
             wait = WebDriverWait(self.browser, self.default_timeout)
-            wait.until(EC.presence_of_element_located((By.ID, title)))
+            wait.until(EC.presence_of_element_located((By.ID, id_name)))
             return self.browser.title
         except TimeoutException:
             return None
@@ -222,6 +222,22 @@ class YouTube:
         try:
             views = self.find_by_class(class_name).get_attribute('textContent')
             return views.strip(' views')
+        except NoSuchElementException:
+            return None
+
+    def get_channel_name(self, class_name='ytd-channel-name'):
+        """ gets the channel name """
+
+        try:
+            return self.find_by_class(class_name).text
+        except NoSuchElementException:
+            return None
+
+    def get_subscribers(self, id_name='owner-sub-count'):
+        """ gets the total of subscribers """
+
+        try:
+            return self.find_by_id(id_name).text.strip(' subscribers')
         except NoSuchElementException:
             return None
 

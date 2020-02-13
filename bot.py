@@ -12,12 +12,26 @@ from modules import utils
 
 class Bot:
     """ A bot to increase YouTube views """
-    # pylint: disable=R0903
+    # pylint: disable=R0903,R0912
 
     def __init__(self, options):
         """ init variables """
 
         self.opts = options
+
+    @staticmethod
+    def player_status(value):
+        """ returns the status based one the input code """
+
+        status = {
+            -1: 'unstarted',
+            0: 'ended',
+            1: 'playing',
+            2: 'paused',
+            3: 'buffering',
+            5: 'video cued',
+        }
+        return status[value] if value in status else 'unknown'
 
     def run(self):
         """ run """
@@ -46,6 +60,12 @@ class Bot:
                 print('[{0}] {1}'.format(count, '-' * length))
             if ipaddr:
                 print('external IP address:', ipaddr)
+            channel_name = youtube.get_channel_name()
+            if channel_name:
+                print('channel name:', channel_name)
+            subscribers = youtube.get_subscribers()
+            if subscribers:
+                print('subscribers:', subscribers)
             print('title:', title)
             views = youtube.get_views()
             if views:
@@ -53,8 +73,8 @@ class Bot:
             # youtube.play_video()
             youtube.skip_ad()
             if self.opts.verbose:
-                is_playing = youtube.get_player_state()
-                print('is_playing:', is_playing)
+                status = youtube.get_player_state()
+                print('video status:', self.player_status(status))
             video_duration = youtube.time_duration()
             seconds = 30
             if video_duration:

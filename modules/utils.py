@@ -200,7 +200,7 @@ def get_cli_args():
         '--visits',
         type=int,
         default=1,
-        help='amount of visits per video, default: 1',
+        help='amount of times the video will be viewed. Default: 1',
     )
     main.add_argument(
         '--url',
