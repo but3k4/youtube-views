@@ -1,12 +1,37 @@
 # youtube-views
 Tool to increase YouTube views
 
+**NOTE:** If you want to use Tor, be aware that YouTube can flag your video and delete the views after a while.
+
 ## Requirements
 
 This tool depends on python3 and uses some libraries. In order to install them, you can use pip:
 
 ```sh
-$ pip3 install -r requirements.txt
+$ sudo pip3 install -r requirements.txt
+```
+
+### Optional (Incomplete)
+
+If you want, you can install tor and privoxy, once selenium does not work very well with socks proxy.
+
+#### Install Tor and on Mac OS X
+
+```sh
+$ brew install tor
+```
+
+#### Install Tor on Debian
+
+```sh
+$ sudo apt-get update
+$ sudo apt-get install tor
+```
+
+#### Install Tor on ArchLinux
+
+```sh
+$ sudo pacman -Sy tor
 ```
 
 ## Usage

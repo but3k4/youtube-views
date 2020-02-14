@@ -110,7 +110,7 @@ def get_ipaddr(url='http://httpbin.org/ip', proxy=None):
 
     if response.status_code == 200:
         try:
-            return json.loads(response.content)['origin']
+            return json.loads(response.content.decode('utf-8'))['origin']
         except json.decoder.JSONDecodeError:
             return None
     return None
