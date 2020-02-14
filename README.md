@@ -1,9 +1,10 @@
 # youtube-views
-Tool to increase YouTube views
 
 **NOTE:** If you want to use Tor, be aware that YouTube can flag your video and delete the views after a while.
 
 ---
+
+Tool to increase YouTube views
 
 ## Requirements
 
