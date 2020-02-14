@@ -3,6 +3,8 @@ Tool to increase YouTube views
 
 **NOTE:** If you want to use Tor, be aware that YouTube can flag your video and delete the views after a while.
 
+---
+
 ## Requirements
 
 This tool depends on python3 and uses some libraries. In order to install them, you can use pip:
