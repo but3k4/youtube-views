@@ -64,6 +64,8 @@ class YouTube:
         # Set the amount of time that the script should wait during an
         # execute_async_script call before throwing an error.
         # self.browser.set_script_timeout(self.default_timeout)
+        # Sets the width and height of the current window$
+        self.browser.set_window_size(1920, 1080)
         # Opens the page
         self.open_url()
 
