@@ -48,7 +48,6 @@ class Bot:
                 proxy=self.opts.proxy,
                 verbose=self.opts.verbose
             )
-            youtube.get_url()
             title = youtube.get_title()
             if not title:
                 if self.opts.verbose:

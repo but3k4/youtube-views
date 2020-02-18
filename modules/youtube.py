@@ -64,6 +64,8 @@ class YouTube:
         # Set the amount of time that the script should wait during an
         # execute_async_script call before throwing an error.
         # self.browser.set_script_timeout(self.default_timeout)
+        # Opens the page
+        self.open_url()
 
     def find_by_class(self, class_name):
         """ finds an element by class name """
@@ -148,10 +150,15 @@ class YouTube:
             return False
         return True
 
-    def get_url(self):
+    def open_url(self):
         """ opens the URL """
 
         self.browser.get(self.url)
+
+    def get_current_url(self):
+        """ gets the current url """
+
+        return self.browser.current_url
 
     def get_title(self, id_name='video-title'):
         """ gets the video title """
@@ -170,14 +177,18 @@ class YouTube:
         except TimeoutException:
             return None
 
-    def search(self, value):
+    def search(self, query):
         """ searches for the given term(s) and print the result """
 
+        result = {}
         try:
             search = self.find_by_name('search_query')
+            time.sleep(2)
             search.click()
+            time.sleep(2)
             search.clear()
-            search.send_keys(value)
+            search.send_keys(query)
+            time.sleep(10)
             search.send_keys(Keys.DOWN)
             search.send_keys(Keys.ENTER)
             self.click(
@@ -185,19 +196,32 @@ class YouTube:
                 "//div[@id='more']/yt-formatted-string/span[3]")
             wait = WebDriverWait(self.browser, self.default_timeout)
             wait.until(
-                EC.presence_of_all_elements_located(
-                    (By.ID, 'video-title')))
-            items = self.find_all_by_id('video-title')
-            index = 0
+                EC.visibility_of_all_elements_located(
+                    ((By.CSS_SELECTOR,
+                      'a.yt-simple-endpoint.style-scope.ytd-video-renderer#video-title'))))
+            items = self.find_all_by_xpath(
+                '//*[@id="contents"]/ytd-video-renderer')
             for item in items:
                 if item.is_displayed():
-                    index += 1
-                    print(index, item.text)
-                    print(index, item.get_attribute('href'))
-                    print('-' * 60)
-            return True
-        except (ElementNotInteractableException, NoSuchElementException):
-            return False
+                    v_info = item.find_element_by_id('video-title')
+                    c_info = item.find_element_by_class_name(
+                        'ytd-channel-name')
+                    v_link = v_info.get_attribute('href')
+                    v_id = v_link.strip('https://www.youtube.com/watch?v=')
+                    v_title = v_info.get_attribute('title')
+                    c_url = c_info.find_element_by_class_name(
+                        'yt-formatted-string').get_attribute('href')
+                    result[v_id] = {
+                        'id': v_id,
+                        'video title': v_title,
+                        'video url': v_link,
+                        'channel name': c_info.text,
+                        'channel url': c_url,
+                        'element': v_info,
+                    }
+            return result
+        except NoSuchElementException:
+            return None
 
     def play_video(self, class_name='ytp-play-button'):
         """ clicks on the play button """
