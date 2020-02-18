@@ -81,11 +81,11 @@ class Bot:
                 print('video duration time:', video_duration)
                 seconds = utils.to_seconds(duration=video_duration.split(':'))
                 if seconds:
-                    sleep_time = randrange(seconds)
                     if self.opts.verbose:
                         print('video duration time in seconds:', seconds)
-                print('stopping video in %s seconds' % sleep_time)
-                time.sleep(sleep_time)
+            sleep_time = randrange(seconds)
+            print('stopping video in %s seconds' % sleep_time)
+            time.sleep(sleep_time)
             youtube.disconnect()
             count += 1
 

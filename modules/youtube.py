@@ -53,7 +53,17 @@ class YouTube:
         self.options.add_argument('--user-agent={0}'.format(self.user_agent))
         self.browser = webdriver.Chrome(options=self.options)
         self.default_timeout = 20
+        # Specifies the amount of time the driver should wait when trying to
+        # find any element (or elements) if it is not immediately available.
+        # The default setting is 0. Once set, the implicit wait is set for the
+        # life of the WebDriver object.
         self.browser.implicitly_wait(self.default_timeout)
+        # Set the amount of time to wait for a page load to complete before
+        # throwing an error.
+        # self.browser.set_page_load_timeout(self.default_timeout)
+        # Set the amount of time that the script should wait during an
+        # execute_async_script call before throwing an error.
+        # self.browser.set_script_timeout(self.default_timeout)
 
     def find_by_class(self, class_name):
         """ finds an element by class name """
