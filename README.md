@@ -23,6 +23,11 @@ If you want, you can install tor and privoxy, once selenium does not work very w
 ```sh
 $ brew install tor
 ```
+### Install Chrome Driver if not present (Ubuntu only)
+
+```sh
+$ sudo apt install $(grep -vE "^\s*#" apt.txt  | tr "\n" " ")
+```
 
 #### Install Tor on Debian
 
