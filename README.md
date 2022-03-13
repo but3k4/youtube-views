@@ -60,5 +60,5 @@ $
 
 ## Example
 ```sh
-$ python3 bot.py --visits 2 --url https://www.youtube.com/watch?v=HAQQUDbuudY --verbose
+$ python3 bot.py --visits 2 --url https://www.youtube.com/watch?v=3Cs4wmAuk_U --verbose
 ```
